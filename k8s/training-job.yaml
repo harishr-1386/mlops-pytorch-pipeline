@@ -1,0 +1,70 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cifar10-training
+  namespace: ml-training
+  labels:
+    app: cifar10-trainer
+    version: v1
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app: cifar10-trainer
+    spec:
+      restartPolicy: OnFailure
+
+      # -----------------------------------------------------------------------
+      # GPU scheduling (bonus): only schedule on nodes with the nvidia GPU label.
+      # Remove nodeSelector and tolerations if running on CPU-only Minikube.
+      # -----------------------------------------------------------------------
+      nodeSelector:
+        accelerator: nvidia-gpu
+
+      tolerations:
+        - key: "nvidia.com/gpu"
+          operator: "Exists"
+          effect: "NoSchedule"
+
+      containers:
+        - name: trainer
+          image: mlops-train:v1
+          imagePullPolicy: IfNotPresent
+
+          resources:
+            requests:
+              cpu: "2"
+              memory: "4Gi"
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "4"
+              memory: "8Gi"
+              nvidia.com/gpu: "1"
+
+          # Mount ConfigMap config over the baked-in default
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/configs
+              readOnly: true
+            - name: data-volume
+              mountPath: /app/data
+            - name: checkpoints-volume
+              mountPath: /app/checkpoints
+
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+
+      volumes:
+        - name: config-volume
+          configMap:
+            name: training-config
+
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: data-pvc
+
+        - name: checkpoints-volume
+          persistentVolumeClaim:
+            claimName: checkpoints-pvc
