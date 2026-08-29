@@ -1,0 +1,47 @@
+# =============================================================================
+# Stage 1: dependency builder
+# Install all Python deps in a separate stage to keep layer caching clean.
+# =============================================================================
+FROM python:3.11-slim AS base
+
+WORKDIR /app
+
+# System-level build deps (removed in final stage via slim base)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc \
+        g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements/train.txt ./requirements/train.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements/train.txt
+
+# =============================================================================
+# Stage 2: training runtime
+# Only source code and configs are copied here; data arrives via volume mount.
+# =============================================================================
+FROM python:3.11-slim AS training
+
+WORKDIR /app
+
+# Copy installed packages from builder stage (no pip re-download)
+COPY --from=base /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=base /usr/local/bin /usr/local/bin
+
+# Application code
+COPY src/ ./src/
+COPY configs/ ./configs/
+
+# Unbuffered stdout so JSON log lines are flushed immediately
+ENV PYTHONUNBUFFERED=1
+
+# Run as non-root for security
+RUN useradd --create-home --uid 1001 trainer
+USER trainer
+
+# Expected volume mounts at runtime:
+#   /app/data        -- CIFAR-10 dataset cache (PVC in K8s)
+#   /app/checkpoints -- output checkpoint directory (PVC in K8s)
+# Config can also be overridden by mounting a ConfigMap at /app/configs/
+
+ENTRYPOINT ["python", "src/train.py"]
