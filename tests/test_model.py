@@ -4,14 +4,10 @@ from pathlib import Path
 import pytest
 import torch
 
-# Make src importable when running from repo root
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from model import get_model
 
-# ---------------------------------------------------------------------------
-# Model tests
-# ---------------------------------------------------------------------------
 
 class TestGetModel:
     def test_resnet18_output_shape(self):
@@ -40,18 +36,9 @@ class TestGetModel:
         assert isinstance(model, nn.Module)
 
 
-# ---------------------------------------------------------------------------
-# Serving endpoint tests (no checkpoint required -- tests model-not-loaded path)
-# ---------------------------------------------------------------------------
-
 class TestHealthEndpointNoModel:
     def test_health_returns_503_without_model(self):
-        """
-        When no checkpoint exists the lifespan raises, so we test the
-        health logic in isolation by importing and calling it directly.
-        """
         import serve
-        # Patch global model to None (simulates pre-load or failed load)
         original = serve._model
         serve._model = None
         try:

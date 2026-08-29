@@ -1,22 +1,11 @@
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-# CIFAR-10 channel statistics (computed over training set)
 _MEAN = (0.4914, 0.4822, 0.4465)
 _STD = (0.2470, 0.2435, 0.2616)
 
 
 def get_transforms(train: bool = True) -> transforms.Compose:
-    """
-    Return augmentation pipeline for train or validation split.
-
-    Training adds:
-      - RandomHorizontalFlip + RandomCrop (from starter)
-      - ColorJitter for brightness/contrast/saturation variation
-      - RandomErasing to simulate occlusion (regularisation)
-
-    Validation uses only normalisation (no stochastic ops).
-    """
     if train:
         return transforms.Compose([
             transforms.RandomHorizontalFlip(),
@@ -40,7 +29,6 @@ def get_dataloaders(
     batch_size: int = 64,
     num_workers: int = 2,
 ) -> tuple[DataLoader, DataLoader]:
-    """Return (train_loader, val_loader) for CIFAR-10."""
     train_dataset = datasets.CIFAR10(
         root=data_dir,
         train=True,

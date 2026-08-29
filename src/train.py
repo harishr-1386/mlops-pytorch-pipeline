@@ -94,7 +94,6 @@ def build_scheduler(
 
 
 def main() -> None:
-    # Config resolution: K8s volume mount takes priority, falls back to local path
     config_path = Path("/app/configs/training_config.yaml")
     if not config_path.exists():
         config_path = Path("configs/training_config.yaml")
@@ -132,7 +131,6 @@ def main() -> None:
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     save_path = checkpoint_dir / config["output"]["model_name"]
 
-    # Track best by val accuracy (more stable than val loss with LR scheduling)
     best_val_acc = 0.0
     patience_counter = 0
     patience = config["training"]["early_stopping_patience"]
@@ -155,11 +153,9 @@ def main() -> None:
         }
         print(json.dumps(log_entry), flush=True)
 
-        # Step scheduler after logging so the logged LR matches the epoch
         if scheduler is not None:
             scheduler.step()
 
-        # Save on best val accuracy (not val loss) to be robust to LR-driven loss dips
         if val_acc > best_val_acc:
             best_val_acc = val_acc
             patience_counter = 0

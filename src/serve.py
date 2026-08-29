@@ -12,12 +12,8 @@ from torchvision import transforms
 
 from model import CIFAR10_CLASSES, get_model
 
-# ---------------------------------------------------------------------------
-# Global state
-# ---------------------------------------------------------------------------
-
-_model: torch.nn.Module | None = None
-_device: torch.device | None = None
+_model = None
+_device = None
 
 _MEAN = (0.4914, 0.4822, 0.4465)
 _STD = (0.2470, 0.2435, 0.2616)
@@ -30,10 +26,6 @@ _INFER_TRANSFORM = transforms.Compose([
 
 
 def _resolve_checkpoint_path() -> Path:
-    """
-    Find the checkpoint to load.
-    Priority: CONFIG_PATH env var > /app/configs/training_config.yaml > local configs/
-    """
     for cfg_path in [
         os.getenv("CONFIG_PATH", ""),
         "/app/configs/training_config.yaml",
@@ -46,14 +38,9 @@ def _resolve_checkpoint_path() -> Path:
             if ckpt.exists():
                 return ckpt
 
-    # Fallback: CHECKPOINT_PATH env var
     env_path = os.getenv("CHECKPOINT_PATH", "/app/checkpoints/classifier_v1.pt")
     return Path(env_path)
 
-
-# ---------------------------------------------------------------------------
-# Lifespan: load model once at startup
-# ---------------------------------------------------------------------------
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -78,20 +65,14 @@ async def lifespan(app: FastAPI):
     print(f"Model loaded from {ckpt_path} (epoch {checkpoint.get('epoch', '?')})", flush=True)
     yield
 
-    # Cleanup
     _model = None
 
 
 app = FastAPI(title="CIFAR-10 Classifier", version="1.0.0", lifespan=lifespan)
 
 
-# ---------------------------------------------------------------------------
-# Endpoints
-# ---------------------------------------------------------------------------
-
 @app.get("/health")
 def health() -> JSONResponse:
-    """Liveness and readiness probe target."""
     if _model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
     return JSONResponse({"status": "ok"})
@@ -99,12 +80,6 @@ def health() -> JSONResponse:
 
 @app.post("/predict")
 async def predict(image: UploadFile = File()) -> JSONResponse:  # noqa: B008
-    """
-    Accept a PNG/JPEG image, return per-class probabilities.
-
-    Example:
-        curl -X POST http://localhost:8080/predict -F "image=@test.png"
-    """
     if _model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
@@ -128,10 +103,6 @@ async def predict(image: UploadFile = File()) -> JSONResponse:  # noqa: B008
         "top1": CIFAR10_CLASSES[int(torch.tensor(probs).argmax())],
     })
 
-
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     import uvicorn
