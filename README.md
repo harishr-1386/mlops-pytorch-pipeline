@@ -1,7 +1,7 @@
 # mlops-pytorch-pipeline
 
 End-to-end MLOps pipeline for CIFAR-10 image classification using PyTorch, Docker, and Kubernetes.
-Built for DA5402W Assignment 2 (IIT Madras Online M.Tech in AI).
+Built for DA5402W Assignment 3 (IIT Madras Online M.Tech in AI).
 
 ## Architecture
 
