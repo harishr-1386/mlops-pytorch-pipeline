@@ -29,8 +29,24 @@ Built for DA5402W Assignment 2 (IIT Madras Online M.Tech in AI).
 │                              │                              │
 │                         HPA: 2–6 replicas (CPU 70%)         │
 └─────────────────────────────────────────────────────────────┘
+
+
+| Item | Link |
+|---|---|
+| GitHub Repository | https://github.com/harishr-1386/mlops-pytorch-pipeline |
+| Final PR (K8s deployment + validation screenshots) | https://github.com/harishr-1386/mlops-pytorch-pipeline/pull/5 |
+
 ```
 
+
+### Pull Request History
+
+| PR | Branch | Description | Week |
+|---|---|---|---|
+| #1 | feature/project-structure | Repo skeleton, CI workflow, requirements, config | Week 1 |
+| #2 | feature/pytorch-model | ResNet-18 model, dataset, training loop, FastAPI serving | Week 1 |
+| #3 | feature/docker-containerization | Multi-stage training Dockerfile, slim serving Dockerfile | Week 2 |
+| #5 | feature/k8s-deployment | Kubernetes manifests, end-to-end validation screenshots | Week 2 |
 ## Project Structure
 
 ```
@@ -161,7 +177,7 @@ main
       ├── feature/project-structure   (PR 1)
       ├── feature/pytorch-model       (PR 2)
       ├── feature/docker-containerization (PR 3)
-      └── feature/k8s-deployment      (PR 4)
+      └── feature/k8s-deployment      (PR 5)
 ```
 
 Commits follow [Conventional Commits](https://www.conventionalcommits.org/):
