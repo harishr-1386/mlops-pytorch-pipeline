@@ -29,14 +29,12 @@ Built for DA5402W Assignment 2 (IIT Madras Online M.Tech in AI).
 │                              │                              │
 │                         HPA: 2–6 replicas (CPU 70%)         │
 └─────────────────────────────────────────────────────────────┘
-
+```
 
 | Item | Link |
 |---|---|
 | GitHub Repository | https://github.com/harishr-1386/mlops-pytorch-pipeline |
 | Final PR (K8s deployment + validation screenshots) | https://github.com/harishr-1386/mlops-pytorch-pipeline/pull/5 |
-
-```
 
 
 ### Pull Request History
